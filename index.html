@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Evening Check-In</title>
+<style>
+  :root {
+    --bg: #f7f1e8;
+    --bg-warm: #efe5d4;
+    --card: #fffaf2;
+    --ink: #3a2e25;
+    --ink-soft: #6b5a4c;
+    --accent: #b87651;
+    --accent-soft: #d9a888;
+    --line: #e3d4be;
+    --ok: #7a9a6e;
+    --shadow: 0 1px 2px rgba(80, 50, 20, 0.06), 0 6px 20px rgba(80, 50, 20, 0.05);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .app {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 20px 18px 60px;
+  }
+  header.top {
+    text-align: center;
+    margin: 8px 0 20px;
+  }
+  header.top h1 {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0 0 4px;
+    letter-spacing: 0.2px;
+  }
+  header.top .sub {
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  .tabs {
+    display: flex;
+    background: var(--bg-warm);
+    border-radius: 14px;
+    padding: 4px;
+    margin-bottom: 20px;
+    gap: 4px;
+  }
+  .tab {
+    flex: 1;
+    padding: 11px 8px;
+    text-align: center;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--ink-soft);
+    transition: background 0.18s, color 0.18s;
+    user-select: none;
+  }
+  .tab.active {
+    background: var(--card);
+    color: var(--ink);
+    box-shadow: var(--shadow);
+  }
+  .tab .dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    margin-left: 6px;
+    vertical-align: middle;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .tab.submitted .dot { opacity: 1; background: var(--ok); }
+  .panel {
+    display: none;
+  }
+  .panel.active { display: block; }
+  .card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 20px 18px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+  }
+  .name-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .name-row .who {
+    font-size: 17px;
+    font-weight: 600;
+  }
+  .name-row .edit {
+    font-size: 12px;
+    color: var(--accent);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 6px;
+  }
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin: 14px 0 6px;
+    letter-spacing: 0.1px;
+  }
+  label:first-of-type { margin-top: 4px; }
+  textarea, input[type="text"], input[type="password"] {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 11px 12px;
+    font-family: inherit;
+    font-size: 15px;
+    color: var(--ink);
+    resize: vertical;
+    line-height: 1.45;
+    -webkit-appearance: none;
+  }
+  textarea { min-height: 70px; }
+  textarea:focus, input:focus {
+    outline: none;
+    border-color: var(--accent-soft);
+    background: #fff;
+  }
+  .btn {
+    display: block;
+    width: 100%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 18px;
+    transition: background 0.15s, transform 0.05s;
+    font-family: inherit;
+  }
+  .btn:active { transform: scale(0.99); }
+  .btn:disabled { background: var(--accent-soft); cursor: not-allowed; opacity: 0.7; }
+  .btn.secondary {
+    background: transparent;
+    color: var(--ink-soft);
+    border: 1px solid var(--line);
+  }
+  .status {
+    text-align: center;
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin: 8px 0 16px;
+  }
+  .briefing {
+    background: linear-gradient(180deg, #fffaf2 0%, #fdf3e3 100%);
+    border-radius: 16px;
+    padding: 24px 22px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+  }
+  .briefing h2 {
+    font-size: 18px;
+    margin: 0 0 14px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+  }
+  .briefing-body {
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--ink);
+    white-space: pre-wrap;
+  }
+  .briefing-body h3 {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent);
+    margin: 18px 0 6px;
+    font-weight: 600;
+  }
+  .briefing-body strong { color: var(--ink); }
+  .modal-bg {
+    position: fixed;
+    inset: 0;
+    background: rgba(40, 25, 15, 0.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 100;
+  }
+  .modal-bg.show { display: flex; }
+  .modal {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 22px 20px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  }
+  .modal h3 { margin: 0 0 6px; font-size: 17px; }
+  .modal p { margin: 0 0 14px; font-size: 13px; color: var(--ink-soft); }
+  .footer-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 24px;
+  }
+  .footer-actions .btn { margin-top: 0; }
+  .api-link {
+    display: block;
+    text-align: center;
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 18px;
+    text-decoration: none;
+  }
+  .api-link:hover { color: var(--accent); }
+  .err {
+    background: #fce9e0;
+    color: #8a3a1c;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    margin: 12px 0;
+  }
+  .loading {
+    text-align: center;
+    padding: 30px 20px;
+    color: var(--ink-soft);
+    font-size: 14px;
+  }
+  .loading .pulse {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    margin: 0 3px;
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+  .loading .pulse:nth-child(2) { animation-delay: 0.2s; }
+  .loading .pulse:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes pulse {
+    0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+    40% { opacity: 1; transform: scale(1.1); }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <h1>Evening Check-In</h1>
+    <div class="sub" id="dateLine"></div>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <div class="tab active" data-person="a" id="tabA">Person A<span class="dot"></span></div>
+    <div class="tab" data-person="b" id="tabB">Person B<span class="dot"></span></div>
+  </div>
+
+  <div class="panel active" id="panelA"></div>
+  <div class="panel" id="panelB"></div>
+
+  <div id="briefingArea"></div>
+
+  <div class="footer-actions">
+    <button class="btn secondary" id="resetBtn">Start a new evening</button>
+  </div>
+
+  <a href="#" class="api-link" id="apiKeyLink">Set Anthropic API key</a>
+</div>
+
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <h3 id="modalTitle">Set up</h3>
+    <p id="modalDesc"></p>
+    <input type="text" id="modalInput" />
+    <div class="footer-actions">
+      <button class="btn secondary" id="modalCancel">Cancel</button>
+      <button class="btn" id="modalSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'eveningCheckin.v1';
+const API_KEY_STORAGE = 'eveningCheckin.apiKey';
+const MODEL = 'claude-opus-4-7';
+
+const FIELDS = [
+  { key: 'done', label: 'What I got done today', placeholder: 'The wins, big and small…' },
+  { key: 'carry', label: "What's carrying over", placeholder: 'Undone, still on my mind…' },
+  { key: 'tomorrow', label: "What's coming up tomorrow", placeholder: 'Meetings, plans, commitments…' },
+  { key: 'need', label: 'What I need from my partner', placeholder: 'A favor, a heads-up, a hand…' },
+];
+
+const defaultState = () => ({
+  a: { name: '', submitted: false, fields: { done:'', carry:'', tomorrow:'', need:'' } },
+  b: { name: '', submitted: false, fields: { done:'', carry:'', tomorrow:'', need:'' } },
+  briefing: null,
+  date: new Date().toDateString(),
+});
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return defaultState();
+    const s = JSON.parse(raw);
+    // If the saved state is from a different day, start fresh but keep names.
+    if (s.date !== new Date().toDateString()) {
+      const fresh = defaultState();
+      fresh.a.name = s.a?.name || '';
+      fresh.b.name = s.b?.name || '';
+      return fresh;
+    }
+    return s;
+  } catch {
+    return defaultState();
+  }
+}
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+let state = loadState();
+
+// ---------- Render ----------
+function renderDateLine() {
+  const opts = { weekday: 'long', month: 'long', day: 'numeric' };
+  document.getElementById('dateLine').textContent =
+    new Date().toLocaleDateString(undefined, opts);
+}
+
+function renderTabs() {
+  const a = document.getElementById('tabA');
+  const b = document.getElementById('tabB');
+  a.firstChild.textContent = state.a.name || 'Person A';
+  b.firstChild.textContent = state.b.name || 'Person B';
+  a.classList.toggle('submitted', state.a.submitted);
+  b.classList.toggle('submitted', state.b.submitted);
+}
+
+function renderPanel(person) {
+  const p = state[person];
+  const panel = document.getElementById('panel' + person.toUpperCase());
+  const displayName = p.name || (person === 'a' ? 'Person A' : 'Person B');
+
+  if (p.submitted) {
+    panel.innerHTML = `
+      <div class="card">
+        <div class="name-row">
+          <div class="who">${escapeHtml(displayName)}'s check-in</div>
+          <button class="edit" data-action="unsubmit" data-person="${person}">Edit</button>
+        </div>
+        ${FIELDS.map(f => `
+          <label>${f.label}</label>
+          <div style="font-size:14px;color:var(--ink);white-space:pre-wrap;background:var(--bg);padding:10px 12px;border-radius:10px;">${escapeHtml(p.fields[f.key]) || '<span style="color:var(--ink-soft);font-style:italic">—</span>'}</div>
+        `).join('')}
+        <div class="status" style="margin-top:18px;">Submitted. Waiting for the other check-in.</div>
+      </div>
+    `;
+  } else {
+    panel.innerHTML = `
+      <div class="card">
+        <div class="name-row">
+          <div class="who">${escapeHtml(displayName)}</div>
+          <button class="edit" data-action="rename" data-person="${person}">${p.name ? 'Change name' : 'Set name'}</button>
+        </div>
+        ${FIELDS.map(f => `
+          <label>${f.label}</label>
+          <textarea data-person="${person}" data-field="${f.key}" placeholder="${f.placeholder}">${escapeHtml(p.fields[f.key])}</textarea>
+        `).join('')}
+        <button class="btn" data-action="submit" data-person="${person}">Submit check-in</button>
+      </div>
+    `;
+  }
+
+  panel.querySelectorAll('textarea').forEach(t => {
+    t.addEventListener('input', e => {
+      state[e.target.dataset.person].fields[e.target.dataset.field] = e.target.value;
+      saveState();
+    });
+  });
+}
+
+function renderBriefingArea() {
+  const area = document.getElementById('briefingArea');
+  const bothIn = state.a.submitted && state.b.submitted;
+
+  if (state.briefing) {
+    area.innerHTML = `
+      <div class="briefing">
+        <h2>State of the Household</h2>
+        <div class="briefing-body">${formatBriefing(state.briefing)}</div>
+      </div>
+    `;
+    return;
+  }
+
+  if (bothIn) {
+    area.innerHTML = `
+      <div class="card" style="text-align:center;">
+        <div style="font-size:14px;color:var(--ink-soft);margin-bottom:4px;">Both check-ins are in.</div>
+        <div style="font-size:15px;margin-bottom:4px;">Ready when you are.</div>
+        <button class="btn" id="generateBtn">Generate the briefing</button>
+        <div id="briefingErr"></div>
+      </div>
+    `;
+    document.getElementById('generateBtn').addEventListener('click', generateBriefing);
+  } else {
+    const waiting = !state.a.submitted && !state.b.submitted
+      ? 'Both check-ins still to come.'
+      : `Waiting on ${state[state.a.submitted ? 'b' : 'a'].name || (state.a.submitted ? 'Person B' : 'Person A')}.`;
+    area.innerHTML = `<div class="status">${waiting}</div>`;
+  }
+}
+
+function renderAll() {
+  renderDateLine();
+  renderTabs();
+  renderPanel('a');
+  renderPanel('b');
+  renderBriefingArea();
+}
+
+// ---------- Events ----------
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel' + tab.dataset.person.toUpperCase()).classList.add('active');
+  });
+});
+
+document.body.addEventListener('click', e => {
+  const action = e.target.dataset.action;
+  if (!action) return;
+  const person = e.target.dataset.person;
+
+  if (action === 'submit') {
+    if (!state[person].name) {
+      askName(person, () => doSubmit(person));
+      return;
+    }
+    doSubmit(person);
+  } else if (action === 'unsubmit') {
+    state[person].submitted = false;
+    state.briefing = null;
+    saveState();
+    renderAll();
+  } else if (action === 'rename') {
+    askName(person);
+  }
+});
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  if (!confirm('Clear both check-ins and start fresh? Names will be kept.')) return;
+  const fresh = defaultState();
+  fresh.a.name = state.a.name;
+  fresh.b.name = state.b.name;
+  state = fresh;
+  saveState();
+  renderAll();
+});
+
+document.getElementById('apiKeyLink').addEventListener('click', e => {
+  e.preventDefault();
+  askApiKey();
+});
+
+function doSubmit(person) {
+  const f = state[person].fields;
+  const hasAny = Object.values(f).some(v => v.trim());
+  if (!hasAny) {
+    alert('Add at least one note before submitting.');
+    return;
+  }
+  state[person].submitted = true;
+  state.briefing = null;
+  saveState();
+  renderAll();
+  // Auto-switch to the other tab if it's not yet submitted
+  const other = person === 'a' ? 'b' : 'a';
+  if (!state[other].submitted) {
+    document.getElementById('tab' + other.toUpperCase()).click();
+  }
+}
+
+// ---------- Modal helpers ----------
+function showModal({ title, desc, value = '', onSave, type = 'text' }) {
+  const bg = document.getElementById('modal');
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalDesc').textContent = desc;
+  const input = document.getElementById('modalInput');
+  input.type = type;
+  input.value = value;
+  bg.classList.add('show');
+  setTimeout(() => input.focus(), 50);
+
+  const cleanup = () => {
+    bg.classList.remove('show');
+    document.getElementById('modalSave').onclick = null;
+    document.getElementById('modalCancel').onclick = null;
+  };
+  document.getElementById('modalSave').onclick = () => {
+    const v = input.value.trim();
+    cleanup();
+    if (v && onSave) onSave(v);
+  };
+  document.getElementById('modalCancel').onclick = cleanup;
+}
+
+function askName(person, after) {
+  showModal({
+    title: 'Your name',
+    desc: 'How should we label this view?',
+    value: state[person].name,
+    onSave: (name) => {
+      state[person].name = name;
+      saveState();
+      renderAll();
+      if (after) after();
+    }
+  });
+}
+
+function askApiKey(after) {
+  showModal({
+    title: 'Anthropic API key',
+    desc: 'Stored only in this browser. Used to generate the briefing.',
+    value: localStorage.getItem(API_KEY_STORAGE) || '',
+    type: 'password',
+    onSave: (key) => {
+      localStorage.setItem(API_KEY_STORAGE, key);
+      if (after) after();
+    }
+  });
+}
+
+// ---------- Briefing ----------
+async function generateBriefing() {
+  const apiKey = localStorage.getItem(API_KEY_STORAGE);
+  if (!apiKey) {
+    askApiKey(generateBriefing);
+    return;
+  }
+
+  const area = document.getElementById('briefingArea');
+  area.innerHTML = `<div class="card"><div class="loading">Drawing it together<span class="pulse"></span><span class="pulse"></span><span class="pulse"></span></div></div>`;
+
+  const nameA = state.a.name || 'Person A';
+  const nameB = state.b.name || 'Person B';
+
+  const formatPerson = (name, p) => {
+    return `## ${name}
+- Got done today: ${p.fields.done || '(nothing noted)'}
+- Carrying over: ${p.fields.carry || '(nothing noted)'}
+- Coming up tomorrow: ${p.fields.tomorrow || '(nothing noted)'}
+- Needs from partner: ${p.fields.need || '(nothing noted)'}`;
+  };
+
+  const userMessage = `Two partners who run a household together have just done their evening check-ins. Read both, then write a short "State of the Household" briefing for them to read together in the morning.
+
+${formatPerson(nameA, state.a)}
+
+${formatPerson(nameB, state.b)}
+
+Write the briefing with these sections, using markdown headings (###):
+
+### The day behind us
+Two or three sentences acknowledging what each person carried and accomplished. Warm but not saccharine.
+
+### Tomorrow at a glance
+Surface any conflicts or clashes between their schedules (overlapping commitments, logistics gaps, things that will collide). If there are none, say so plainly.
+
+### Asks on the table
+For each thing one person asked of the other, name it clearly and who needs to act. Skip this section if there are no requests.
+
+### One shared priority
+A single sentence naming the one thing that most matters for the two of them tomorrow.
+
+Tone: calm, grounded, written for two people who trust each other. Don't be a productivity coach. Don't pad. Don't moralize. If something seems off (e.g. one person is clearly carrying more), you can name it gently — but only if it's actually evident in what they wrote.`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: 1200,
+        messages: [{ role: 'user', content: userMessage }],
+      }),
+    });
+
+    if (!resp.ok) {
+      const errText = await resp.text();
+      throw new Error(`API error (${resp.status}): ${errText}`);
+    }
+    const data = await resp.json();
+    const text = (data.content || []).filter(c => c.type === 'text').map(c => c.text).join('\n').trim();
+    if (!text) throw new Error('Empty response from the API.');
+    state.briefing = text;
+    saveState();
+    renderAll();
+  } catch (err) {
+    area.innerHTML = `
+      <div class="card">
+        <div class="err">${escapeHtml(err.message)}</div>
+        <button class="btn" id="retryBtn">Try again</button>
+        <button class="btn secondary" id="changeKeyBtn">Change API key</button>
+      </div>
+    `;
+    document.getElementById('retryBtn').onclick = generateBriefing;
+    document.getElementById('changeKeyBtn').onclick = () => askApiKey(generateBriefing);
+  }
+}
+
+// ---------- Utils ----------
+function escapeHtml(s) {
+  return (s || '').replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+
+function formatBriefing(text) {
+  // Light markdown rendering: ### headings, **bold**, line breaks.
+  let html = escapeHtml(text);
+  html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/\n{2,}/g, '\n\n');
+  return html;
+}
+
+renderAll();
+</script>
+</body>
+</html>
