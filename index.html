@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <title>Evening Check-In</title>
 <style>
   :root {
@@ -19,257 +21,103 @@
   }
   * { box-sizing: border-box; }
   html, body {
-    margin: 0;
-    padding: 0;
+    margin: 0; padding: 0;
     background: var(--bg);
     color: var(--ink);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", sans-serif;
-    font-size: 16px;
-    line-height: 1.5;
+    font-size: 16px; line-height: 1.5;
     -webkit-font-smoothing: antialiased;
   }
-  .app {
-    max-width: 640px;
-    margin: 0 auto;
-    padding: 20px 18px 60px;
-  }
-  header.top {
-    text-align: center;
-    margin: 8px 0 20px;
-  }
-  header.top h1 {
-    font-size: 22px;
-    font-weight: 600;
-    margin: 0 0 4px;
-    letter-spacing: 0.2px;
-  }
-  header.top .sub {
-    font-size: 13px;
-    color: var(--ink-soft);
-  }
-  .tabs {
-    display: flex;
-    background: var(--bg-warm);
-    border-radius: 14px;
-    padding: 4px;
-    margin-bottom: 20px;
-    gap: 4px;
-  }
-  .tab {
-    flex: 1;
-    padding: 11px 8px;
-    text-align: center;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    color: var(--ink-soft);
-    transition: background 0.18s, color 0.18s;
-    user-select: none;
-  }
-  .tab.active {
-    background: var(--card);
-    color: var(--ink);
-    box-shadow: var(--shadow);
-  }
-  .tab .dot {
-    display: inline-block;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--accent-soft);
-    margin-left: 6px;
-    vertical-align: middle;
-    opacity: 0;
-    transition: opacity 0.2s;
-  }
+  .app { max-width: 640px; margin: 0 auto; padding: 20px 18px 60px; }
+  header.top { text-align: center; margin: 8px 0 20px; }
+  header.top h1 { font-size: 22px; font-weight: 600; margin: 0 0 4px; letter-spacing: 0.2px; }
+  header.top .sub { font-size: 13px; color: var(--ink-soft); }
+  .tabs { display: flex; background: var(--bg-warm); border-radius: 14px; padding: 4px; margin-bottom: 20px; gap: 4px; }
+  .tab { flex: 1; padding: 11px 8px; text-align: center; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; color: var(--ink-soft); transition: background 0.18s, color 0.18s; user-select: none; }
+  .tab.active { background: var(--card); color: var(--ink); box-shadow: var(--shadow); }
+  .tab .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent-soft); margin-left: 6px; vertical-align: middle; opacity: 0; transition: opacity 0.2s; }
   .tab.submitted .dot { opacity: 1; background: var(--ok); }
-  .panel {
-    display: none;
-  }
+  .panel { display: none; }
   .panel.active { display: block; }
-  .card {
-    background: var(--card);
-    border-radius: 16px;
-    padding: 20px 18px;
-    box-shadow: var(--shadow);
-    margin-bottom: 16px;
-  }
-  .name-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 16px;
-  }
-  .name-row .who {
-    font-size: 17px;
-    font-weight: 600;
-  }
-  .name-row .edit {
-    font-size: 12px;
-    color: var(--accent);
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 4px 6px;
-  }
-  label {
-    display: block;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--ink-soft);
-    margin: 14px 0 6px;
-    letter-spacing: 0.1px;
-  }
+  .card { background: var(--card); border-radius: 16px; padding: 20px 18px; box-shadow: var(--shadow); margin-bottom: 16px; }
+  .name-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .name-row .who { font-size: 17px; font-weight: 600; }
+  .name-row .edit { font-size: 12px; color: var(--accent); background: none; border: none; cursor: pointer; padding: 4px 6px; font-family: inherit; }
+  label { display: block; font-size: 13px; font-weight: 500; color: var(--ink-soft); margin: 14px 0 6px; letter-spacing: 0.1px; }
   label:first-of-type { margin-top: 4px; }
   textarea, input[type="text"], input[type="password"] {
-    width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 11px 12px;
-    font-family: inherit;
-    font-size: 15px;
-    color: var(--ink);
-    resize: vertical;
-    line-height: 1.45;
-    -webkit-appearance: none;
+    width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 11px 12px;
+    font-family: inherit; font-size: 15px; color: var(--ink); resize: vertical; line-height: 1.45; -webkit-appearance: none;
   }
   textarea { min-height: 70px; }
-  textarea:focus, input:focus {
-    outline: none;
-    border-color: var(--accent-soft);
-    background: #fff;
-  }
-  .btn {
-    display: block;
-    width: 100%;
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    border-radius: 12px;
-    padding: 14px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 18px;
-    transition: background 0.15s, transform 0.05s;
-    font-family: inherit;
-  }
+  textarea:focus, input:focus { outline: none; border-color: var(--accent-soft); background: #fff; }
+  .btn { display: block; width: 100%; background: var(--accent); color: #fff; border: none; border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 18px; transition: background 0.15s, transform 0.05s; font-family: inherit; }
   .btn:active { transform: scale(0.99); }
   .btn:disabled { background: var(--accent-soft); cursor: not-allowed; opacity: 0.7; }
-  .btn.secondary {
-    background: transparent;
-    color: var(--ink-soft);
-    border: 1px solid var(--line);
-  }
-  .status {
-    text-align: center;
-    font-size: 13px;
-    color: var(--ink-soft);
-    margin: 8px 0 16px;
-  }
-  .briefing {
-    background: linear-gradient(180deg, #fffaf2 0%, #fdf3e3 100%);
-    border-radius: 16px;
-    padding: 24px 22px;
-    box-shadow: var(--shadow);
-    margin-bottom: 16px;
-  }
-  .briefing h2 {
-    font-size: 18px;
-    margin: 0 0 14px;
-    font-weight: 600;
-    letter-spacing: 0.2px;
-  }
-  .briefing-body {
-    font-size: 15px;
-    line-height: 1.65;
-    color: var(--ink);
-    white-space: pre-wrap;
-  }
-  .briefing-body h3 {
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--accent);
-    margin: 18px 0 6px;
-    font-weight: 600;
-  }
+  .btn.secondary { background: transparent; color: var(--ink-soft); border: 1px solid var(--line); }
+  .status { text-align: center; font-size: 13px; color: var(--ink-soft); margin: 8px 0 16px; }
+  .briefing { background: linear-gradient(180deg, #fffaf2 0%, #fdf3e3 100%); border-radius: 16px; padding: 24px 22px; box-shadow: var(--shadow); margin-bottom: 16px; }
+  .briefing h2 { font-size: 18px; margin: 0 0 14px; font-weight: 600; letter-spacing: 0.2px; }
+  .briefing-body { font-size: 15px; line-height: 1.65; color: var(--ink); }
+  .briefing-body h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); margin: 18px 0 6px; font-weight: 600; }
+  .briefing-body p { margin: 0 0 10px; }
   .briefing-body strong { color: var(--ink); }
-  .modal-bg {
-    position: fixed;
-    inset: 0;
-    background: rgba(40, 25, 15, 0.45);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    z-index: 100;
-  }
+  .modal-bg { position: fixed; inset: 0; background: rgba(40, 25, 15, 0.45); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 100; }
   .modal-bg.show { display: flex; }
-  .modal {
-    background: var(--card);
-    border-radius: 16px;
-    padding: 22px 20px;
-    width: 100%;
-    max-width: 380px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-  }
+  .modal { background: var(--card); border-radius: 16px; padding: 22px 20px; width: 100%; max-width: 380px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
   .modal h3 { margin: 0 0 6px; font-size: 17px; }
   .modal p { margin: 0 0 14px; font-size: 13px; color: var(--ink-soft); }
-  .footer-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 24px;
-  }
-  .footer-actions .btn { margin-top: 0; }
-  .api-link {
-    display: block;
-    text-align: center;
-    font-size: 12px;
-    color: var(--ink-soft);
-    margin-top: 18px;
-    text-decoration: none;
-  }
+  .footer-actions { display: flex; gap: 10px; margin-top: 24px; flex-wrap: wrap; }
+  .footer-actions .btn { margin-top: 0; flex: 1; min-width: 140px; }
+  .api-link { display: block; text-align: center; font-size: 12px; color: var(--ink-soft); margin-top: 18px; text-decoration: none; }
   .api-link:hover { color: var(--accent); }
-  .err {
-    background: #fce9e0;
-    color: #8a3a1c;
-    padding: 10px 12px;
-    border-radius: 10px;
-    font-size: 13px;
-    margin: 12px 0;
-  }
-  .loading {
-    text-align: center;
-    padding: 30px 20px;
-    color: var(--ink-soft);
-    font-size: 14px;
-  }
-  .loading .pulse {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--accent-soft);
-    margin: 0 3px;
-    animation: pulse 1.2s ease-in-out infinite;
-  }
+  .err { background: #fce9e0; color: #8a3a1c; padding: 10px 12px; border-radius: 10px; font-size: 13px; margin: 12px 0; }
+  .loading { text-align: center; padding: 30px 20px; color: var(--ink-soft); font-size: 14px; }
+  .loading .pulse { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--accent-soft); margin: 0 3px; animation: pulse 1.2s ease-in-out infinite; }
   .loading .pulse:nth-child(2) { animation-delay: 0.2s; }
   .loading .pulse:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes pulse {
-    0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
-    40% { opacity: 1; transform: scale(1.1); }
-  }
+  @keyframes pulse { 0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); } 40% { opacity: 1; transform: scale(1.1); } }
+
+  /* Setup screen */
+  .setup { max-width: 420px; margin: 40px auto; }
+  .setup .card { padding: 26px 22px; }
+  .setup h2 { font-size: 19px; margin: 0 0 6px; }
+  .setup .desc { font-size: 14px; color: var(--ink-soft); margin: 0 0 18px; }
+  .code-display { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 22px; letter-spacing: 4px; text-align: center; background: var(--bg); padding: 14px; border-radius: 10px; margin: 12px 0; border: 1px solid var(--line); }
+  .slot-picker { display: flex; gap: 10px; margin-top: 14px; }
+  .slot-btn { flex: 1; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 18px 12px; cursor: pointer; text-align: center; font-family: inherit; font-size: 15px; color: var(--ink); }
+  .slot-btn:hover { border-color: var(--accent-soft); }
+  .small-link { font-size: 13px; color: var(--accent); background: none; border: none; cursor: pointer; padding: 4px; text-align: center; display: block; margin: 12px auto 0; font-family: inherit; }
+
+  /* History */
+  .history-section { margin-top: 32px; }
+  .history-section h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: var(--ink-soft); margin: 0 0 12px; font-weight: 600; padding-left: 4px; }
+  .history-item { background: var(--card); border-radius: 12px; padding: 14px 16px; margin-bottom: 8px; box-shadow: var(--shadow); cursor: pointer; }
+  .history-item .h-date { font-size: 14px; font-weight: 500; }
+  .history-item .h-preview { font-size: 13px; color: var(--ink-soft); margin-top: 4px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; }
+  .history-item.expanded .h-preview { display: none; }
+  .history-item.expanded .h-full { display: block; }
+  .h-full { display: none; font-size: 14px; line-height: 1.6; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+  .h-full h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); margin: 14px 0 4px; font-weight: 600; }
+  .h-full p { margin: 0 0 8px; }
+  .menu-bar { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--ink-soft); margin-bottom: 16px; padding: 0 4px; }
+  .menu-bar button { background: none; border: none; color: var(--accent); font-size: 12px; cursor: pointer; padding: 4px; font-family: inherit; }
 </style>
 </head>
 <body>
-<div class="app">
+
+<div id="setupView" class="setup" style="display:none;"></div>
+
+<div id="appView" class="app" style="display:none;">
   <header class="top">
     <h1>Evening Check-In</h1>
     <div class="sub" id="dateLine"></div>
   </header>
+
+  <div class="menu-bar">
+    <span id="householdLabel"></span>
+    <button id="settingsBtn">Settings</button>
+  </div>
 
   <div class="tabs" role="tablist">
     <div class="tab active" data-person="a" id="tabA">Person A<span class="dot"></span></div>
@@ -281,8 +129,9 @@
 
   <div id="briefingArea"></div>
 
-  <div class="footer-actions">
-    <button class="btn secondary" id="resetBtn">Start a new evening</button>
+  <div class="history-section" id="historySection" style="display:none;">
+    <h2>Past week</h2>
+    <div id="historyList"></div>
   </div>
 
   <a href="#" class="api-link" id="apiKeyLink">Set Anthropic API key</a>
@@ -300,116 +149,308 @@
   </div>
 </div>
 
-<script>
-const STORAGE_KEY = 'eveningCheckin.v1';
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getFirestore, doc, setDoc, getDoc, onSnapshot,
+  collection, query, orderBy, limit, getDocs, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDqjdFJjTUIWVntKgwb_Y3IVpaSH3JRJRg",
+  authDomain: "family-briefing-a44dc.firebaseapp.com",
+  projectId: "family-briefing-a44dc",
+  storageBucket: "family-briefing-a44dc.firebasestorage.app",
+  messagingSenderId: "895318118064",
+  appId: "1:895318118064:web:930f03612b5357bb6a7575"
+};
+const fbApp = initializeApp(firebaseConfig);
+const db = getFirestore(fbApp);
+
+// ---------- Config ----------
+const LOCAL_KEY = 'eveningCheckin.local.v2';
 const API_KEY_STORAGE = 'eveningCheckin.apiKey';
 const MODEL = 'claude-opus-4-7';
-
 const FIELDS = [
-  { key: 'done', label: 'What I got done today', placeholder: 'The wins, big and small…' },
-  { key: 'carry', label: "What's carrying over", placeholder: 'Undone, still on my mind…' },
-  { key: 'tomorrow', label: "What's coming up tomorrow", placeholder: 'Meetings, plans, commitments…' },
-  { key: 'need', label: 'What I need from my partner', placeholder: 'A favor, a heads-up, a hand…' },
+  { key: 'done',     label: 'What I got done today',         placeholder: 'The wins, big and small…' },
+  { key: 'carry',    label: "What's carrying over",          placeholder: 'Undone, still on my mind…' },
+  { key: 'tomorrow', label: "What's coming up tomorrow",      placeholder: 'Meetings, plans, commitments…' },
+  { key: 'need',     label: 'What I need from my partner',    placeholder: 'A favor, a heads-up, a hand…' },
 ];
 
-const defaultState = () => ({
-  a: { name: '', submitted: false, fields: { done:'', carry:'', tomorrow:'', need:'' } },
-  b: { name: '', submitted: false, fields: { done:'', carry:'', tomorrow:'', need:'' } },
-  briefing: null,
-  date: new Date().toDateString(),
-});
+// ---------- Local (per-device) state ----------
+// { householdCode, slot: 'a'|'b', name }
+function loadLocal() {
+  try { return JSON.parse(localStorage.getItem(LOCAL_KEY)) || {}; } catch { return {}; }
+}
+function saveLocal(obj) {
+  localStorage.setItem(LOCAL_KEY, JSON.stringify(obj));
+}
+let local = loadLocal();
 
-function loadState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return defaultState();
-    const s = JSON.parse(raw);
-    // If the saved state is from a different day, start fresh but keep names.
-    if (s.date !== new Date().toDateString()) {
-      const fresh = defaultState();
-      fresh.a.name = s.a?.name || '';
-      fresh.b.name = s.b?.name || '';
-      return fresh;
-    }
-    return s;
-  } catch {
-    return defaultState();
+// ---------- Shared day state (Firestore) ----------
+let dayUnsub = null;
+let currentDay = null; // { a: {...}, b: {...}, briefing, date }
+
+function todayKey() {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function emptyDay() {
+  return {
+    a: { name: '', submitted: false, fields: { done:'', carry:'', tomorrow:'', need:'' } },
+    b: { name: '', submitted: false, fields: { done:'', carry:'', tomorrow:'', need:'' } },
+    briefing: null,
+  };
+}
+
+function dayDocRef() {
+  return doc(db, 'households', local.householdCode, 'days', todayKey());
+}
+
+async function subscribeToToday() {
+  if (dayUnsub) dayUnsub();
+  const ref = dayDocRef();
+  // ensure doc exists
+  const snap = await getDoc(ref);
+  if (!snap.exists()) {
+    await setDoc(ref, { ...emptyDay(), createdAt: serverTimestamp() });
   }
-}
-function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  dayUnsub = onSnapshot(ref, s => {
+    const data = s.data() || emptyDay();
+    // Don't overwrite local in-progress edits to my own slot
+    if (currentDay && !currentDay[local.slot].submitted && data[local.slot].submitted === false) {
+      // Preserve my live textarea state by merging — keep my draft fields
+      data[local.slot].fields = currentDay[local.slot].fields;
+      data[local.slot].name = currentDay[local.slot].name || local.name;
+    }
+    currentDay = data;
+    renderApp();
+  });
 }
 
-let state = loadState();
+async function saveDay(updates) {
+  await setDoc(dayDocRef(), { ...currentDay, ...updates, updatedAt: serverTimestamp() }, { merge: true });
+}
 
-// ---------- Render ----------
+// ---------- Setup flow ----------
+function genCode() {
+  // 6 chars, no ambiguous (0/O, 1/I/L)
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  let s = '';
+  for (let i = 0; i < 6; i++) s += chars[Math.floor(Math.random() * chars.length)];
+  return s;
+}
+
+function renderSetup() {
+  const view = document.getElementById('setupView');
+  view.style.display = 'block';
+  document.getElementById('appView').style.display = 'none';
+
+  if (!local.householdCode) {
+    view.innerHTML = `
+      <div class="card">
+        <h2>Welcome</h2>
+        <p class="desc">A quiet shared space for the two of you. Start a new household, or join one your partner created.</p>
+        <button class="btn" id="createHh">Start a new household</button>
+        <button class="btn secondary" id="joinHh" style="margin-top:10px;">Join with a code</button>
+      </div>
+    `;
+    document.getElementById('createHh').onclick = async () => {
+      const code = genCode();
+      await setDoc(doc(db, 'households', code), { createdAt: serverTimestamp() });
+      local.householdCode = code;
+      saveLocal(local);
+      renderSetup();
+    };
+    document.getElementById('joinHh').onclick = () => {
+      showModal({
+        title: 'Enter household code',
+        desc: 'The 6-letter code your partner shared with you.',
+        onSave: async v => {
+          const code = v.trim().toUpperCase();
+          const ref = doc(db, 'households', code);
+          const snap = await getDoc(ref);
+          if (!snap.exists()) {
+            alert("Couldn't find that household. Check the code.");
+            return;
+          }
+          local.householdCode = code;
+          saveLocal(local);
+          renderSetup();
+        }
+      });
+    };
+    return;
+  }
+
+  if (!local.slot) {
+    view.innerHTML = `
+      <div class="card">
+        <h2>You're in</h2>
+        <p class="desc">Your household code:</p>
+        <div class="code-display">${escapeHtml(local.householdCode)}</div>
+        <p class="desc" style="margin-top:14px;">Share that with your partner so they can join. Now — which side of the check-in are you?</p>
+        <div class="slot-picker">
+          <button class="slot-btn" data-slot="a">I'm A</button>
+          <button class="slot-btn" data-slot="b">I'm B</button>
+        </div>
+        <p class="desc" style="margin-top:14px;font-size:12px;">Pick either — your partner takes the other. You can rename yourself next.</p>
+      </div>
+    `;
+    view.querySelectorAll('.slot-btn').forEach(btn => {
+      btn.onclick = () => {
+        local.slot = btn.dataset.slot;
+        saveLocal(local);
+        renderSetup();
+      };
+    });
+    return;
+  }
+
+  if (!local.name) {
+    view.innerHTML = `
+      <div class="card">
+        <h2>Your name</h2>
+        <p class="desc">How would you like to be labelled in the briefing?</p>
+        <input type="text" id="nameInput" placeholder="e.g. Marta" />
+        <button class="btn" id="saveName">Continue</button>
+      </div>
+    `;
+    const input = document.getElementById('nameInput');
+    setTimeout(() => input.focus(), 60);
+    document.getElementById('saveName').onclick = () => {
+      const v = input.value.trim();
+      if (!v) return;
+      local.name = v;
+      saveLocal(local);
+      bootApp();
+    };
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('saveName').click(); });
+    return;
+  }
+
+  // All set
+  bootApp();
+}
+
+async function bootApp() {
+  document.getElementById('setupView').style.display = 'none';
+  document.getElementById('appView').style.display = 'block';
+  document.getElementById('householdLabel').textContent = `Household ${local.householdCode}`;
+  await subscribeToToday();
+  await loadHistory();
+}
+
+// ---------- Main app render ----------
+function renderApp() {
+  renderDateLine();
+  renderTabs();
+  renderPanel('a');
+  renderPanel('b');
+  renderBriefingArea();
+}
+
 function renderDateLine() {
   const opts = { weekday: 'long', month: 'long', day: 'numeric' };
   document.getElementById('dateLine').textContent =
     new Date().toLocaleDateString(undefined, opts);
 }
 
+function nameFor(slot) {
+  if (!currentDay) return slot === 'a' ? 'Person A' : 'Person B';
+  if (slot === local.slot) return local.name;
+  return currentDay[slot].name || (slot === 'a' ? 'Person A' : 'Person B');
+}
+
 function renderTabs() {
   const a = document.getElementById('tabA');
   const b = document.getElementById('tabB');
-  a.firstChild.textContent = state.a.name || 'Person A';
-  b.firstChild.textContent = state.b.name || 'Person B';
-  a.classList.toggle('submitted', state.a.submitted);
-  b.classList.toggle('submitted', state.b.submitted);
+  a.firstChild.textContent = nameFor('a');
+  b.firstChild.textContent = nameFor('b');
+  a.classList.toggle('submitted', !!currentDay?.a.submitted);
+  b.classList.toggle('submitted', !!currentDay?.b.submitted);
+
+  // Auto-focus the user's own tab on first render
+  if (!document.querySelector('.tab.active.user-focused')) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    const mine = document.getElementById('tab' + local.slot.toUpperCase());
+    mine.classList.add('active', 'user-focused');
+    document.getElementById('panel' + local.slot.toUpperCase()).classList.add('active');
+  }
 }
 
-function renderPanel(person) {
-  const p = state[person];
-  const panel = document.getElementById('panel' + person.toUpperCase());
-  const displayName = p.name || (person === 'a' ? 'Person A' : 'Person B');
+function renderPanel(slot) {
+  if (!currentDay) return;
+  const p = currentDay[slot];
+  const isMe = slot === local.slot;
+  const panel = document.getElementById('panel' + slot.toUpperCase());
+  const displayName = nameFor(slot);
 
   if (p.submitted) {
     panel.innerHTML = `
       <div class="card">
         <div class="name-row">
           <div class="who">${escapeHtml(displayName)}'s check-in</div>
-          <button class="edit" data-action="unsubmit" data-person="${person}">Edit</button>
+          ${isMe ? `<button class="edit" data-action="unsubmit">Edit</button>` : ''}
         </div>
         ${FIELDS.map(f => `
           <label>${f.label}</label>
           <div style="font-size:14px;color:var(--ink);white-space:pre-wrap;background:var(--bg);padding:10px 12px;border-radius:10px;">${escapeHtml(p.fields[f.key]) || '<span style="color:var(--ink-soft);font-style:italic">—</span>'}</div>
         `).join('')}
-        <div class="status" style="margin-top:18px;">Submitted. Waiting for the other check-in.</div>
+        <div class="status" style="margin-top:18px;">${isMe ? 'Your check-in is in.' : 'Submitted.'}</div>
       </div>
     `;
-  } else {
+  } else if (isMe) {
     panel.innerHTML = `
       <div class="card">
         <div class="name-row">
           <div class="who">${escapeHtml(displayName)}</div>
-          <button class="edit" data-action="rename" data-person="${person}">${p.name ? 'Change name' : 'Set name'}</button>
+          <button class="edit" data-action="rename">Change name</button>
         </div>
         ${FIELDS.map(f => `
           <label>${f.label}</label>
-          <textarea data-person="${person}" data-field="${f.key}" placeholder="${f.placeholder}">${escapeHtml(p.fields[f.key])}</textarea>
+          <textarea data-field="${f.key}" placeholder="${f.placeholder}">${escapeHtml(p.fields[f.key])}</textarea>
         `).join('')}
-        <button class="btn" data-action="submit" data-person="${person}">Submit check-in</button>
+        <button class="btn" data-action="submit">Submit check-in</button>
+      </div>
+    `;
+    panel.querySelectorAll('textarea').forEach(t => {
+      t.addEventListener('input', e => {
+        currentDay[local.slot].fields[e.target.dataset.field] = e.target.value;
+        // Debounced save
+        clearTimeout(t._saveTimer);
+        t._saveTimer = setTimeout(() => {
+          saveDay({ [local.slot]: currentDay[local.slot] });
+        }, 600);
+      });
+    });
+  } else {
+    // Partner's panel, not yet submitted
+    panel.innerHTML = `
+      <div class="card" style="text-align:center;">
+        <div class="who" style="margin-bottom:8px;">${escapeHtml(displayName)}</div>
+        <div class="status">Hasn't checked in yet.</div>
       </div>
     `;
   }
-
-  panel.querySelectorAll('textarea').forEach(t => {
-    t.addEventListener('input', e => {
-      state[e.target.dataset.person].fields[e.target.dataset.field] = e.target.value;
-      saveState();
-    });
-  });
 }
 
 function renderBriefingArea() {
   const area = document.getElementById('briefingArea');
-  const bothIn = state.a.submitted && state.b.submitted;
+  if (!currentDay) { area.innerHTML = ''; return; }
+  const bothIn = currentDay.a.submitted && currentDay.b.submitted;
 
-  if (state.briefing) {
+  if (currentDay.briefing) {
     area.innerHTML = `
       <div class="briefing">
         <h2>State of the Household</h2>
-        <div class="briefing-body">${formatBriefing(state.briefing)}</div>
+        <div class="briefing-body">${formatBriefing(currentDay.briefing)}</div>
       </div>
     `;
     return;
@@ -424,165 +465,71 @@ function renderBriefingArea() {
         <div id="briefingErr"></div>
       </div>
     `;
-    document.getElementById('generateBtn').addEventListener('click', generateBriefing);
+    document.getElementById('generateBtn').onclick = generateBriefing;
   } else {
-    const waiting = !state.a.submitted && !state.b.submitted
-      ? 'Both check-ins still to come.'
-      : `Waiting on ${state[state.a.submitted ? 'b' : 'a'].name || (state.a.submitted ? 'Person B' : 'Person A')}.`;
-    area.innerHTML = `<div class="status">${waiting}</div>`;
+    const waitingFor = currentDay.a.submitted ? nameFor('b')
+                    : currentDay.b.submitted ? nameFor('a')
+                    : null;
+    const msg = waitingFor ? `Waiting on ${escapeHtml(waitingFor)}.` : 'Both check-ins still to come.';
+    area.innerHTML = `<div class="status">${msg}</div>`;
   }
 }
 
-function renderAll() {
-  renderDateLine();
-  renderTabs();
-  renderPanel('a');
-  renderPanel('b');
-  renderBriefingArea();
-}
-
-// ---------- Events ----------
-document.querySelectorAll('.tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    tab.classList.add('active');
-    document.getElementById('panel' + tab.dataset.person.toUpperCase()).classList.add('active');
+// ---------- History ----------
+async function loadHistory() {
+  const daysRef = collection(db, 'households', local.householdCode, 'days');
+  const q = query(daysRef, orderBy('__name__', 'desc'), limit(8));
+  const snap = await getDocs(q);
+  const today = todayKey();
+  const items = [];
+  snap.forEach(d => {
+    if (d.id === today) return; // skip today, shown above
+    const data = d.data();
+    if (!data.briefing) return; // only show days with a generated briefing
+    items.push({ date: d.id, briefing: data.briefing });
   });
-});
-
-document.body.addEventListener('click', e => {
-  const action = e.target.dataset.action;
-  if (!action) return;
-  const person = e.target.dataset.person;
-
-  if (action === 'submit') {
-    if (!state[person].name) {
-      askName(person, () => doSubmit(person));
-      return;
-    }
-    doSubmit(person);
-  } else if (action === 'unsubmit') {
-    state[person].submitted = false;
-    state.briefing = null;
-    saveState();
-    renderAll();
-  } else if (action === 'rename') {
-    askName(person);
-  }
-});
-
-document.getElementById('resetBtn').addEventListener('click', () => {
-  if (!confirm('Clear both check-ins and start fresh? Names will be kept.')) return;
-  const fresh = defaultState();
-  fresh.a.name = state.a.name;
-  fresh.b.name = state.b.name;
-  state = fresh;
-  saveState();
-  renderAll();
-});
-
-document.getElementById('apiKeyLink').addEventListener('click', e => {
-  e.preventDefault();
-  askApiKey();
-});
-
-function doSubmit(person) {
-  const f = state[person].fields;
-  const hasAny = Object.values(f).some(v => v.trim());
-  if (!hasAny) {
-    alert('Add at least one note before submitting.');
-    return;
-  }
-  state[person].submitted = true;
-  state.briefing = null;
-  saveState();
-  renderAll();
-  // Auto-switch to the other tab if it's not yet submitted
-  const other = person === 'a' ? 'b' : 'a';
-  if (!state[other].submitted) {
-    document.getElementById('tab' + other.toUpperCase()).click();
-  }
-}
-
-// ---------- Modal helpers ----------
-function showModal({ title, desc, value = '', onSave, type = 'text' }) {
-  const bg = document.getElementById('modal');
-  document.getElementById('modalTitle').textContent = title;
-  document.getElementById('modalDesc').textContent = desc;
-  const input = document.getElementById('modalInput');
-  input.type = type;
-  input.value = value;
-  bg.classList.add('show');
-  setTimeout(() => input.focus(), 50);
-
-  const cleanup = () => {
-    bg.classList.remove('show');
-    document.getElementById('modalSave').onclick = null;
-    document.getElementById('modalCancel').onclick = null;
-  };
-  document.getElementById('modalSave').onclick = () => {
-    const v = input.value.trim();
-    cleanup();
-    if (v && onSave) onSave(v);
-  };
-  document.getElementById('modalCancel').onclick = cleanup;
-}
-
-function askName(person, after) {
-  showModal({
-    title: 'Your name',
-    desc: 'How should we label this view?',
-    value: state[person].name,
-    onSave: (name) => {
-      state[person].name = name;
-      saveState();
-      renderAll();
-      if (after) after();
-    }
+  const section = document.getElementById('historySection');
+  const list = document.getElementById('historyList');
+  if (!items.length) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  list.innerHTML = items.slice(0, 7).map(item => `
+    <div class="history-item" data-date="${item.date}">
+      <div class="h-date">${formatDate(item.date)}</div>
+      <div class="h-preview">${escapeHtml(stripMarkdown(item.briefing)).slice(0, 120)}…</div>
+      <div class="h-full">${formatBriefing(item.briefing)}</div>
+    </div>
+  `).join('');
+  list.querySelectorAll('.history-item').forEach(el => {
+    el.onclick = () => el.classList.toggle('expanded');
   });
 }
 
-function askApiKey(after) {
-  showModal({
-    title: 'Anthropic API key',
-    desc: 'Stored only in this browser. Used to generate the briefing.',
-    value: localStorage.getItem(API_KEY_STORAGE) || '',
-    type: 'password',
-    onSave: (key) => {
-      localStorage.setItem(API_KEY_STORAGE, key);
-      if (after) after();
-    }
-  });
+function formatDate(yyyymmdd) {
+  const [y, m, d] = yyyymmdd.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  return date.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
 }
 
-// ---------- Briefing ----------
+// ---------- Briefing generation ----------
 async function generateBriefing() {
   const apiKey = localStorage.getItem(API_KEY_STORAGE);
-  if (!apiKey) {
-    askApiKey(generateBriefing);
-    return;
-  }
+  if (!apiKey) { askApiKey(generateBriefing); return; }
 
   const area = document.getElementById('briefingArea');
   area.innerHTML = `<div class="card"><div class="loading">Drawing it together<span class="pulse"></span><span class="pulse"></span><span class="pulse"></span></div></div>`;
 
-  const nameA = state.a.name || 'Person A';
-  const nameB = state.b.name || 'Person B';
-
-  const formatPerson = (name, p) => {
-    return `## ${name}
+  const nameA = nameFor('a'), nameB = nameFor('b');
+  const formatPerson = (name, p) => `## ${name}
 - Got done today: ${p.fields.done || '(nothing noted)'}
 - Carrying over: ${p.fields.carry || '(nothing noted)'}
 - Coming up tomorrow: ${p.fields.tomorrow || '(nothing noted)'}
 - Needs from partner: ${p.fields.need || '(nothing noted)'}`;
-  };
 
   const userMessage = `Two partners who run a household together have just done their evening check-ins. Read both, then write a short "State of the Household" briefing for them to read together in the morning.
 
-${formatPerson(nameA, state.a)}
+${formatPerson(nameA, currentDay.a)}
 
-${formatPerson(nameB, state.b)}
+${formatPerson(nameB, currentDay.b)}
 
 Write the briefing with these sections, using markdown headings (###):
 
@@ -609,24 +556,15 @@ Tone: calm, grounded, written for two people who trust each other. Don't be a pr
         'anthropic-version': '2023-06-01',
         'anthropic-dangerous-direct-browser-access': 'true',
       },
-      body: JSON.stringify({
-        model: MODEL,
-        max_tokens: 1200,
-        messages: [{ role: 'user', content: userMessage }],
-      }),
+      body: JSON.stringify({ model: MODEL, max_tokens: 1200, messages: [{ role: 'user', content: userMessage }] }),
     });
-
-    if (!resp.ok) {
-      const errText = await resp.text();
-      throw new Error(`API error (${resp.status}): ${errText}`);
-    }
+    if (!resp.ok) throw new Error(`API error (${resp.status}): ${await resp.text()}`);
     const data = await resp.json();
     const text = (data.content || []).filter(c => c.type === 'text').map(c => c.text).join('\n').trim();
     if (!text) throw new Error('Empty response from the API.');
-    state.briefing = text;
-    saveState();
-    renderAll();
+    await saveDay({ briefing: text });
   } catch (err) {
+    const area = document.getElementById('briefingArea');
     area.innerHTML = `
       <div class="card">
         <div class="err">${escapeHtml(err.message)}</div>
@@ -639,23 +577,125 @@ Tone: calm, grounded, written for two people who trust each other. Don't be a pr
   }
 }
 
-// ---------- Utils ----------
-function escapeHtml(s) {
-  return (s || '').replace(/[&<>"']/g, c => ({
-    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-  }[c]));
+// ---------- Settings ----------
+document.getElementById('settingsBtn').onclick = () => {
+  const opts = [
+    `Household code: ${local.householdCode}`,
+    `You: ${local.name} (slot ${local.slot.toUpperCase()})`,
+    '',
+    'Tap OK to change your name. Tap Cancel to do nothing.',
+    'To leave this household entirely, use your browser to clear site data.'
+  ].join('\n');
+  if (confirm(opts)) {
+    showModal({
+      title: 'Your name',
+      desc: '',
+      value: local.name,
+      onSave: async v => {
+        local.name = v;
+        saveLocal(local);
+        if (currentDay) {
+          currentDay[local.slot].name = v;
+          await saveDay({ [local.slot]: currentDay[local.slot] });
+        }
+      }
+    });
+  }
+};
+
+document.getElementById('apiKeyLink').onclick = e => { e.preventDefault(); askApiKey(); };
+
+// ---------- Event delegation ----------
+document.body.addEventListener('click', async e => {
+  const action = e.target.dataset.action;
+  if (!action) return;
+  if (action === 'submit') {
+    const f = currentDay[local.slot].fields;
+    if (!Object.values(f).some(v => v.trim())) { alert('Add at least one note before submitting.'); return; }
+    currentDay[local.slot].submitted = true;
+    currentDay[local.slot].name = local.name;
+    await saveDay({ [local.slot]: currentDay[local.slot] });
+  } else if (action === 'unsubmit') {
+    currentDay[local.slot].submitted = false;
+    await saveDay({ [local.slot]: currentDay[local.slot], briefing: null });
+  } else if (action === 'rename') {
+    showModal({
+      title: 'Your name',
+      desc: 'How should we label this view?',
+      value: local.name,
+      onSave: async v => {
+        local.name = v;
+        saveLocal(local);
+        currentDay[local.slot].name = v;
+        await saveDay({ [local.slot]: currentDay[local.slot] });
+      }
+    });
+  }
+});
+
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel' + tab.dataset.person.toUpperCase()).classList.add('active');
+  });
+});
+
+// ---------- Modal helpers ----------
+function showModal({ title, desc, value = '', onSave, type = 'text' }) {
+  const bg = document.getElementById('modal');
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalDesc').textContent = desc;
+  const input = document.getElementById('modalInput');
+  input.type = type;
+  input.value = value;
+  bg.classList.add('show');
+  setTimeout(() => input.focus(), 50);
+  const cleanup = () => {
+    bg.classList.remove('show');
+    document.getElementById('modalSave').onclick = null;
+    document.getElementById('modalCancel').onclick = null;
+  };
+  document.getElementById('modalSave').onclick = () => {
+    const v = input.value.trim();
+    cleanup();
+    if (v && onSave) onSave(v);
+  };
+  document.getElementById('modalCancel').onclick = cleanup;
+}
+function askApiKey(after) {
+  showModal({
+    title: 'Anthropic API key',
+    desc: 'Stored only in this browser. Used to generate the briefing.',
+    value: localStorage.getItem(API_KEY_STORAGE) || '',
+    type: 'password',
+    onSave: key => { localStorage.setItem(API_KEY_STORAGE, key); if (after) after(); }
+  });
 }
 
+// ---------- Utils ----------
+function escapeHtml(s) {
+  return (s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
 function formatBriefing(text) {
-  // Light markdown rendering: ### headings, **bold**, line breaks.
   let html = escapeHtml(text);
   html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
   html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-  html = html.replace(/\n{2,}/g, '\n\n');
+  // Wrap paragraphs
+  html = html.split(/\n\n+/).map(block => {
+    if (block.startsWith('<h3>')) return block;
+    return '<p>' + block.replace(/\n/g, '<br>') + '</p>';
+  }).join('');
   return html;
 }
+function stripMarkdown(text) {
+  return text.replace(/^### .+$/gm, '').replace(/\*\*/g, '').replace(/\n+/g, ' ').trim();
+}
 
-renderAll();
+// ---------- Boot ----------
+if (local.householdCode && local.slot && local.name) bootApp();
+else renderSetup();
 </script>
 </body>
 </html>
