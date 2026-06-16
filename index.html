@@ -391,8 +391,18 @@ function renderPanel(slot) {
   const isMe = slot === local.slot;
   const panel = document.getElementById('panel' + slot.toUpperCase());
   const displayName = nameFor(slot);
+  const targetMode = p.submitted ? 'submitted' : (isMe ? 'edit' : 'waiting');
 
-  if (p.submitted) {
+  // CRUCIAL: if I'm already editing and still editing, do NOT rebuild — that would
+  // kill the live textarea node and break iOS dictation / focus.
+  if (isMe && panel.dataset.mode === 'edit' && targetMode === 'edit') {
+    // Just update the displayed name if it changed
+    const whoEl = panel.querySelector('.who');
+    if (whoEl) whoEl.textContent = displayName;
+    return;
+  }
+
+  if (targetMode === 'submitted') {
     panel.innerHTML = `
       <div class="card">
         <div class="name-row">
@@ -406,7 +416,7 @@ function renderPanel(slot) {
         <div class="status" style="margin-top:18px;">${isMe ? 'Your check-in is in.' : 'Submitted.'}</div>
       </div>
     `;
-  } else if (isMe) {
+  } else if (targetMode === 'edit') {
     panel.innerHTML = `
       <div class="card">
         <div class="name-row">
@@ -439,6 +449,7 @@ function renderPanel(slot) {
       </div>
     `;
   }
+  panel.dataset.mode = targetMode;
 }
 
 function renderBriefingArea() {
