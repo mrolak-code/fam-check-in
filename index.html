@@ -155,7 +155,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
-  getFirestore, doc, setDoc, getDoc, onSnapshot,
+  getFirestore, doc, setDoc, getDoc, onSnapshot, deleteDoc, updateDoc,
   collection, query, orderBy, limit, getDocs, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
@@ -191,9 +191,12 @@ function saveLocal(obj) {
 }
 let local = loadLocal();
 
-// ---------- Shared day state (Firestore) ----------
-let dayUnsub = null;
-let currentDay = null; // { a: {...}, b: {...}, briefing, date }
+// ---------- Shared pending state (Firestore) ----------
+// One open check-in per household, persists until briefing is generated AND
+// someone taps "Start tomorrow's check-in". Then it's archived to days/{date}.
+let pendingUnsub = null;
+let currentDay = null;     // { a, b, briefing }
+let householdApiKey = null; // shared API key for the household
 
 function todayKey() {
   const d = new Date();
@@ -211,23 +214,53 @@ function emptyDay() {
   };
 }
 
-function dayDocRef() {
-  return doc(db, 'households', local.householdCode, 'days', todayKey());
+function pendingDocRef() {
+  return doc(db, 'households', local.householdCode, 'state', 'pending');
+}
+function householdDocRef() {
+  return doc(db, 'households', local.householdCode);
 }
 
-async function subscribeToToday() {
-  if (dayUnsub) dayUnsub();
-  const ref = dayDocRef();
-  // ensure doc exists
+// One-time migration: if no pending doc yet but old day docs exist without a
+// briefing, merge them into pending so users don't lose unfinished check-ins.
+async function migrateLegacyDaysIfNeeded() {
+  const pendingSnap = await getDoc(pendingDocRef());
+  if (pendingSnap.exists()) return;
+  const daysRef = collection(db, 'households', local.householdCode, 'days');
+  const snap = await getDocs(query(daysRef, orderBy('__name__', 'desc'), limit(5)));
+  const unfinished = [];
+  snap.forEach(d => {
+    const data = d.data();
+    if (!data.briefing) unfinished.push({ id: d.id, data });
+  });
+  const merged = emptyDay();
+  for (const slot of ['a', 'b']) {
+    for (const u of unfinished) {
+      const s = u.data[slot];
+      if (s && (s.submitted || Object.values(s.fields || {}).some(v => v && v.trim()))) {
+        merged[slot] = s;
+        break;
+      }
+    }
+  }
+  await setDoc(pendingDocRef(), merged);
+  for (const u of unfinished) {
+    try { await deleteDoc(doc(db, 'households', local.householdCode, 'days', u.id)); } catch {}
+  }
+}
+
+async function subscribeToPending() {
+  if (pendingUnsub) pendingUnsub();
+  await migrateLegacyDaysIfNeeded();
+  const ref = pendingDocRef();
   const snap = await getDoc(ref);
   if (!snap.exists()) {
     await setDoc(ref, { ...emptyDay(), createdAt: serverTimestamp() });
   }
-  dayUnsub = onSnapshot(ref, s => {
+  pendingUnsub = onSnapshot(ref, s => {
     const data = s.data() || emptyDay();
-    // Don't overwrite local in-progress edits to my own slot
+    // Preserve my own in-progress draft if I'm still editing
     if (currentDay && !currentDay[local.slot].submitted && data[local.slot].submitted === false) {
-      // Preserve my live textarea state by merging — keep my draft fields
       data[local.slot].fields = currentDay[local.slot].fields;
       data[local.slot].name = currentDay[local.slot].name || local.name;
     }
@@ -236,8 +269,30 @@ async function subscribeToToday() {
   });
 }
 
-async function saveDay(updates) {
-  await setDoc(dayDocRef(), { ...currentDay, ...updates, updatedAt: serverTimestamp() }, { merge: true });
+async function savePending(updates) {
+  await setDoc(pendingDocRef(), { ...currentDay, ...updates, updatedAt: serverTimestamp() }, { merge: true });
+}
+
+// Archive the current briefing to days/{today} and reset pending to empty.
+async function startNextCheckIn() {
+  if (!currentDay || !currentDay.briefing) return;
+  const archiveKey = todayKey();
+  await setDoc(
+    doc(db, 'households', local.householdCode, 'days', archiveKey),
+    { ...currentDay, archivedAt: serverTimestamp() }
+  );
+  await setDoc(pendingDocRef(), { ...emptyDay(), createdAt: serverTimestamp() });
+  await loadHistory();
+}
+
+// Load household-level config (currently just the shared API key)
+async function loadHouseholdConfig() {
+  const snap = await getDoc(householdDocRef());
+  householdApiKey = snap.exists() ? (snap.data().apiKey || null) : null;
+}
+async function saveHouseholdApiKey(key) {
+  await setDoc(householdDocRef(), { apiKey: key }, { merge: true });
+  householdApiKey = key;
 }
 
 // ---------- Setup flow ----------
@@ -345,7 +400,8 @@ async function bootApp() {
   document.getElementById('setupView').style.display = 'none';
   document.getElementById('appView').style.display = 'block';
   document.getElementById('householdLabel').textContent = `Household ${local.householdCode}`;
-  await subscribeToToday();
+  await loadHouseholdConfig();
+  await subscribeToPending();
   await loadHistory();
 }
 
@@ -439,7 +495,7 @@ function renderPanel(slot) {
         // Debounced save
         clearTimeout(t._saveTimer);
         t._saveTimer = setTimeout(() => {
-          saveDay({ [local.slot]: currentDay[local.slot] });
+          savePending({ [local.slot]: currentDay[local.slot] });
         }, 600);
       });
     });
@@ -466,7 +522,13 @@ function renderBriefingArea() {
         <h2>State of the Household</h2>
         <div class="briefing-body">${formatBriefing(currentDay.briefing)}</div>
       </div>
+      <button class="btn secondary" id="startNextBtn">Start tomorrow's check-in</button>
     `;
+    document.getElementById('startNextBtn').onclick = async () => {
+      if (confirm("Archive this briefing and start a fresh check-in?")) {
+        await startNextCheckIn();
+      }
+    };
     return;
   }
 
@@ -526,7 +588,7 @@ function formatDate(yyyymmdd) {
 
 // ---------- Briefing generation ----------
 async function generateBriefing() {
-  const apiKey = localStorage.getItem(API_KEY_STORAGE);
+  const apiKey = householdApiKey;
   if (!apiKey) { askApiKey(generateBriefing); return; }
 
   const area = document.getElementById('briefingArea');
@@ -576,7 +638,7 @@ Tone: calm, grounded, written for two people who trust each other. Don't be a pr
     const data = await resp.json();
     const text = (data.content || []).filter(c => c.type === 'text').map(c => c.text).join('\n').trim();
     if (!text) throw new Error('Empty response from the API.');
-    await saveDay({ briefing: text });
+    await savePending({ briefing: text });
   } catch (err) {
     const area = document.getElementById('briefingArea');
     area.innerHTML = `
@@ -610,7 +672,7 @@ document.getElementById('settingsBtn').onclick = () => {
         saveLocal(local);
         if (currentDay) {
           currentDay[local.slot].name = v;
-          await saveDay({ [local.slot]: currentDay[local.slot] });
+          await savePending({ [local.slot]: currentDay[local.slot] });
         }
       }
     });
@@ -628,10 +690,10 @@ document.body.addEventListener('click', async e => {
     if (!Object.values(f).some(v => v.trim())) { alert('Add at least one note before submitting.'); return; }
     currentDay[local.slot].submitted = true;
     currentDay[local.slot].name = local.name;
-    await saveDay({ [local.slot]: currentDay[local.slot] });
+    await savePending({ [local.slot]: currentDay[local.slot] });
   } else if (action === 'unsubmit') {
     currentDay[local.slot].submitted = false;
-    await saveDay({ [local.slot]: currentDay[local.slot], briefing: null });
+    await savePending({ [local.slot]: currentDay[local.slot], briefing: null });
   } else if (action === 'rename') {
     showModal({
       title: 'Your name',
@@ -641,7 +703,7 @@ document.body.addEventListener('click', async e => {
         local.name = v;
         saveLocal(local);
         currentDay[local.slot].name = v;
-        await saveDay({ [local.slot]: currentDay[local.slot] });
+        await savePending({ [local.slot]: currentDay[local.slot] });
       }
     });
   }
@@ -681,10 +743,13 @@ function showModal({ title, desc, value = '', onSave, type = 'text' }) {
 function askApiKey(after) {
   showModal({
     title: 'Anthropic API key',
-    desc: 'Stored only in this browser. Used to generate the briefing.',
-    value: localStorage.getItem(API_KEY_STORAGE) || '',
+    desc: 'Shared across both phones in this household. Stored in your private database.',
+    value: householdApiKey || '',
     type: 'password',
-    onSave: key => { localStorage.setItem(API_KEY_STORAGE, key); if (after) after(); }
+    onSave: async key => {
+      await saveHouseholdApiKey(key.trim());
+      if (after) after();
+    }
   });
 }
 
