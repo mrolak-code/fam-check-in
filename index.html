@@ -227,12 +227,11 @@ async function migrateLegacyDaysIfNeeded() {
   const pendingSnap = await getDoc(pendingDocRef());
   if (pendingSnap.exists()) return;
   const daysRef = collection(db, 'households', local.householdCode, 'days');
-  const snap = await getDocs(query(daysRef, orderBy('__name__', 'desc'), limit(5)));
-  const unfinished = [];
-  snap.forEach(d => {
-    const data = d.data();
-    if (!data.briefing) unfinished.push({ id: d.id, data });
-  });
+  const snap = await getDocs(daysRef);
+  const all = [];
+  snap.forEach(d => all.push({ id: d.id, data: d.data() }));
+  all.sort((a, b) => b.id.localeCompare(a.id));
+  const unfinished = all.filter(x => !x.data.briefing).slice(0, 5);
   const merged = emptyDay();
   for (const slot of ['a', 'b']) {
     for (const u of unfinished) {
@@ -566,16 +565,15 @@ function renderBriefingArea() {
 // ---------- History ----------
 async function loadHistory() {
   const daysRef = collection(db, 'households', local.householdCode, 'days');
-  const q = query(daysRef, orderBy('__name__', 'desc'), limit(8));
-  const snap = await getDocs(q);
+  const snap = await getDocs(daysRef);
+  const all = [];
+  snap.forEach(d => all.push({ id: d.id, data: d.data() }));
+  all.sort((a, b) => b.id.localeCompare(a.id));
   const today = todayKey();
-  const items = [];
-  snap.forEach(d => {
-    if (d.id === today) return; // skip today, shown above
-    const data = d.data();
-    if (!data.briefing) return; // only show days with a generated briefing
-    items.push({ date: d.id, briefing: data.briefing });
-  });
+  const items = all
+    .filter(x => x.id !== today && x.data.briefing)
+    .slice(0, 8)
+    .map(x => ({ date: x.id, briefing: x.data.briefing }));
   const section = document.getElementById('historySection');
   const list = document.getElementById('historyList');
   if (!items.length) { section.style.display = 'none'; return; }
