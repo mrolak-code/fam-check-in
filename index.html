@@ -266,7 +266,7 @@ async function subscribeToPending() {
     }
     currentDay = data;
     renderApp();
-  });
+  }, err => showFatalError(err));
 }
 
 async function savePending(updates) {
@@ -400,9 +400,21 @@ async function bootApp() {
   document.getElementById('setupView').style.display = 'none';
   document.getElementById('appView').style.display = 'block';
   document.getElementById('householdLabel').textContent = `Household ${local.householdCode}`;
-  await loadHouseholdConfig();
-  await subscribeToPending();
-  await loadHistory();
+  try {
+    await loadHouseholdConfig();
+    await subscribeToPending();
+    await loadHistory();
+  } catch (err) {
+    showFatalError(err);
+  }
+}
+
+function showFatalError(err) {
+  const area = document.getElementById('briefingArea');
+  area.innerHTML = `<div class="err" style="margin:20px 4px;">
+    <strong>Something broke loading your data.</strong><br>
+    <code style="font-size:11px;display:block;margin-top:6px;word-break:break-word;">${escapeHtml(String(err && (err.message || err)))}</code>
+  </div>`;
 }
 
 // ---------- Main app render ----------
