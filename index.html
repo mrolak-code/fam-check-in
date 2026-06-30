@@ -526,6 +526,7 @@ function renderBriefingArea() {
   const area = document.getElementById('briefingArea');
   if (!currentDay) { area.innerHTML = ''; return; }
   const bothIn = currentDay.a.submitted && currentDay.b.submitted;
+  const anyIn = currentDay.a.submitted || currentDay.b.submitted;
 
   if (currentDay.briefing) {
     area.innerHTML = `
@@ -549,16 +550,24 @@ function renderBriefingArea() {
         <div style="font-size:14px;color:var(--ink-soft);margin-bottom:4px;">Both check-ins are in.</div>
         <div style="font-size:15px;margin-bottom:4px;">Ready when you are.</div>
         <button class="btn" id="generateBtn">Generate the briefing</button>
-        <div id="briefingErr"></div>
       </div>
     `;
     document.getElementById('generateBtn').onclick = generateBriefing;
+  } else if (anyIn) {
+    const waitingFor = currentDay.a.submitted ? nameFor('b') : nameFor('a');
+    area.innerHTML = `
+      <div class="card" style="text-align:center;">
+        <div style="font-size:14px;color:var(--ink-soft);margin-bottom:10px;">Still waiting on ${escapeHtml(waitingFor)}.</div>
+        <button class="btn" id="generateBtn">Generate the briefing</button>
+        <button class="btn secondary" id="generateSoloBtn" style="margin-top:8px;">Go solo (skip ${escapeHtml(waitingFor)})</button>
+      </div>
+    `;
+    document.getElementById('generateBtn').onclick = generateBriefing;
+    document.getElementById('generateSoloBtn').onclick = () => {
+      if (confirm(`Generate the briefing without ${waitingFor}'s check-in?`)) generateBriefing(true);
+    };
   } else {
-    const waitingFor = currentDay.a.submitted ? nameFor('b')
-                    : currentDay.b.submitted ? nameFor('a')
-                    : null;
-    const msg = waitingFor ? `Waiting on ${escapeHtml(waitingFor)}.` : 'Both check-ins still to come.';
-    area.innerHTML = `<div class="status">${msg}</div>`;
+    area.innerHTML = `<div class="status">Both check-ins still to come.</div>`;
   }
 }
 
@@ -597,9 +606,9 @@ function formatDate(yyyymmdd) {
 }
 
 // ---------- Briefing generation ----------
-async function generateBriefing() {
+async function generateBriefing(solo = false) {
   const apiKey = householdApiKey;
-  if (!apiKey) { askApiKey(generateBriefing); return; }
+  if (!apiKey) { askApiKey(() => generateBriefing(solo)); return; }
 
   const area = document.getElementById('briefingArea');
   area.innerHTML = `<div class="card"><div class="loading">Drawing it together<span class="pulse"></span><span class="pulse"></span><span class="pulse"></span></div></div>`;
@@ -611,11 +620,41 @@ async function generateBriefing() {
 - Coming up tomorrow: ${p.fields.tomorrow || '(nothing noted)'}
 - Needs from partner: ${p.fields.need || '(nothing noted)'}`;
 
-  const userMessage = `Two partners who run a household together have just done their evening check-ins. Read both, then write a short "State of the Household" briefing for them to read together in the morning.
+  const aIn = currentDay.a.submitted;
+  const bIn = currentDay.b.submitted;
+  const presentName = aIn ? nameA : nameB;
+  const absentName = aIn ? nameB : nameA;
+  const isSolo = !(aIn && bIn);
 
-${formatPerson(nameA, currentDay.a)}
+  const bothBlock = `${formatPerson(nameA, currentDay.a)}
 
-${formatPerson(nameB, currentDay.b)}
+${formatPerson(nameB, currentDay.b)}`;
+
+  const soloBlock = aIn ? formatPerson(nameA, currentDay.a) : formatPerson(nameB, currentDay.b);
+
+  const userMessage = isSolo
+    ? `Only one partner did the evening check-in tonight — ${presentName}. ${absentName} didn't submit. Write a short "State of the Household" briefing addressed to ${presentName}, reflecting on their day and tomorrow.
+
+${soloBlock}
+
+Write the briefing with these sections, using markdown headings (###):
+
+### The day behind you
+Two or three sentences acknowledging what ${presentName} carried and accomplished. Warm but not saccharine.
+
+### Tomorrow at a glance
+Reflect ${presentName}'s commitments. Flag anything that looks tight, overloaded, or worth thinking through.
+
+### Asks on the table
+If ${presentName} named something they need from ${absentName}, surface it clearly so they can raise it. Skip this section if there are no asks.
+
+### One priority
+A single sentence naming the one thing that most matters for ${presentName} tomorrow.
+
+Tone: calm, grounded. Don't be a productivity coach. Don't pad. Don't moralize. Don't speculate about why ${absentName} didn't check in — just briefing for the one who did.`
+    : `Two partners who run a household together have just done their evening check-ins. Read both, then write a short "State of the Household" briefing for them to read together in the morning.
+
+${bothBlock}
 
 Write the briefing with these sections, using markdown headings (###):
 
@@ -658,8 +697,8 @@ Tone: calm, grounded, written for two people who trust each other. Don't be a pr
         <button class="btn secondary" id="changeKeyBtn">Change API key</button>
       </div>
     `;
-    document.getElementById('retryBtn').onclick = generateBriefing;
-    document.getElementById('changeKeyBtn').onclick = () => askApiKey(generateBriefing);
+    document.getElementById('retryBtn').onclick = () => generateBriefing(solo);
+    document.getElementById('changeKeyBtn').onclick = () => askApiKey(() => generateBriefing(solo));
   }
 }
 
