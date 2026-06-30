@@ -558,11 +558,9 @@ function renderBriefingArea() {
     area.innerHTML = `
       <div class="card" style="text-align:center;">
         <div style="font-size:14px;color:var(--ink-soft);margin-bottom:10px;">Still waiting on ${escapeHtml(waitingFor)}.</div>
-        <button class="btn" id="generateBtn">Generate the briefing</button>
-        <button class="btn secondary" id="generateSoloBtn" style="margin-top:8px;">Go solo (skip ${escapeHtml(waitingFor)})</button>
+        <button class="btn secondary" id="generateSoloBtn">Generate without ${escapeHtml(waitingFor)}</button>
       </div>
     `;
-    document.getElementById('generateBtn').onclick = generateBriefing;
     document.getElementById('generateSoloBtn').onclick = () => {
       if (confirm(`Generate the briefing without ${waitingFor}'s check-in?`)) generateBriefing(true);
     };
